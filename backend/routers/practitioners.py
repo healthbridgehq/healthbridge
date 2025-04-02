@@ -2,15 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
-from ..database import get_db
-from ..models import User, Clinic, Practitioner, UserRole
-from ..schemas import (
+from database import get_db
+from models.user import User
+from models.clinic import Clinic
+from models.practitioner import Practitioner
+from schemas.practitioner import (
     PractitionerCreate,
-    Practitioner as PractitionerSchema,
+    Practitioner as PractitionerSchema
+)
+from schemas.clinic import (
     ClinicCreate,
     Clinic as ClinicSchema
 )
-from ..security import get_current_admin, get_current_practitioner
+from security import get_current_admin, get_current_practitioner
 
 router = APIRouter()
 

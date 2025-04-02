@@ -3,10 +3,12 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from typing import List
 
-from ..database import get_db
-from ..models import User, ConsentRecord, HealthRecord
-from ..schemas import ConsentRecordCreate, ConsentRecord as ConsentRecordSchema
-from ..security import get_current_user
+from database import get_db
+from models.user import User
+from models.consent import ConsentRecord
+from models.health_record import HealthRecord
+from schemas.consent import ConsentRecordCreate, ConsentRecord as ConsentRecordSchema
+from security import get_current_user
 
 router = APIRouter()
 

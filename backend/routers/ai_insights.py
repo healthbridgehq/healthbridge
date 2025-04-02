@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Dict
 
-from ..database import get_db
-from ..models import HealthRecord
-from ..services.ai_analysis import PrivacyPreservingAnalysis
-from ..security import get_current_user
+from database import get_db
+from models.health_record import HealthRecord
+from services.ai_analysis import PrivacyPreservingAnalysis
+from security import get_current_user
 
 router = APIRouter()
 analyzer = PrivacyPreservingAnalysis()

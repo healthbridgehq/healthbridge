@@ -2,7 +2,7 @@ from typing import Dict, List, Optional
 import tensorflow as tf
 import numpy as np
 from tensorflow_privacy import optimizers as dp_optimizers
-from ..models import HealthRecord
+from models.health_record import HealthRecord
 
 class PrivacyPreservingAnalysis:
     def __init__(self, epsilon: float = 0.5):

@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine import Engine
@@ -13,17 +13,11 @@ logger = logging.getLogger(__name__)
 DB_HOST = os.getenv('DB_HOST', 'localhost')
 DB_PORT = os.getenv('DB_PORT', '5432')
 DB_NAME = os.getenv('DB_NAME', 'healthbridge')
-DB_USER = os.getenv('DB_USER', 'postgres')
-DB_PASS = os.getenv('DB_PASSWORD', 'postgres')
+DB_USER = os.getenv('DB_USER', 'jacklaidley')
+DB_PASS = os.getenv('DB_PASSWORD', '')
 
-# Construct database URL with SSL requirements
-SQLALCHEMY_DATABASE_URL = (
-    f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    "?sslmode=verify-full"
-    "&sslcert=/path/to/client-cert.pem"
-    "&sslkey=/path/to/client-key.pem"
-    "&sslrootcert=/path/to/server-ca.pem"
-)
+# Construct database URL for local development
+SQLALCHEMY_DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # Configure connection pooling
 engine = create_engine(
@@ -33,12 +27,8 @@ engine = create_engine(
     max_overflow=10,  # Maximum number of connections that can be created beyond pool_size
     pool_timeout=30,  # Seconds to wait before giving up on getting a connection
     pool_recycle=1800,  # Recycle connections after 30 minutes
-    connect_args={
-        "ssl": {
-            "ssl_version": ssl.PROTOCOL_TLS,
-            "cert_reqs": ssl.CERT_REQUIRED,
-        }
-    }
+    json_serializer=lambda obj: obj,  # Handle enum serialization
+    pool_pre_ping=True  # Enable connection health checks
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -60,8 +50,8 @@ def checkin(dbapi_connection, connection_record):
 def get_db():
     db = SessionLocal()
     try:
-        # Test the connection
-        db.execute("SELECT 1")
+        # Test connection with explicit text()
+        db.execute(text('SELECT 1'))
         yield db
     except Exception as e:
         logger.error(f"Database connection error: {e}")

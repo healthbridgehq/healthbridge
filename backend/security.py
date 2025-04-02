@@ -8,9 +8,9 @@ from cryptography.fernet import Fernet
 from sqlalchemy.orm import Session
 import os
 
-from .database import get_db
-from .models import User, UserRole
-from .schemas import TokenData
+from database import get_db
+from models.user import User
+from schemas.user import TokenData
 
 # Security configuration
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")  # Change in production
@@ -22,10 +22,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Token handling
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="token",
+    tokenUrl="auth/login",
     scopes={
-        "patient": "Access patient data",
-        "practitioner": "Access practitioner features",
+        "user": "Basic user access",
         "admin": "Full system access"
     }
 )
