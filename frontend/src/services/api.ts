@@ -1,5 +1,10 @@
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
-import { getStoredToken, clearStoredToken } from './auth';
+import axios from 'axios';
+
+type AxiosRequestConfig = any;
+type AxiosInstance = any;
+type InternalAxiosRequestConfig = any;
+type AxiosError = any;
+import authService from './auth';
 
 // Error types
 export class ApiError extends Error {
@@ -23,7 +28,6 @@ interface ApiResponse<T> {
 // Create axios instance with default config
 const createApiClient = (): AxiosInstance => {
   const client = axios.create({
-    baseURL: process.env.REACT_APP_API_URL,
     timeout: 10000,
     headers: {
       'Content-Type': 'application/json',
@@ -32,15 +36,13 @@ const createApiClient = (): AxiosInstance => {
 
   // Request interceptor
   client.interceptors.request.use(
-    async (config) => {
-      const token = getStoredToken();
-      if (token) {
+    async (config: AxiosRequestConfig) => {
+      const token = authService.getToken();
+      if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
+        // Add request ID for tracing
+        config.headers['X-Request-ID'] = crypto.randomUUID();
       }
-      
-      // Add request ID for tracing
-      config.headers['X-Request-ID'] = crypto.randomUUID();
-      
       return config;
     },
     (error) => Promise.reject(error)
@@ -54,7 +56,7 @@ const createApiClient = (): AxiosInstance => {
       
       // Handle token expiration
       if (error.response?.status === 401 && !originalRequest?.headers['X-Retry-Auth']) {
-        clearStoredToken();
+        authService.logout();
         window.location.href = '/login';
         return Promise.reject(error);
       }
@@ -86,7 +88,8 @@ const makeRequest = async <T>(
     const response = await apiClient(config);
     return response.data;
   } catch (error) {
-    if (retries > 0 && axios.isAxiosError(error) && error.response?.status >= 500) {
+    const axiosError = error as any;
+    if (retries > 0 && axiosError.response?.status >= 500) {
       // Exponential backoff
       const delay = Math.pow(2, 4 - retries) * 1000;
       await new Promise(resolve => setTimeout(resolve, delay));
@@ -97,7 +100,42 @@ const makeRequest = async <T>(
 };
 
 // API endpoints
-export const api = {
+export const axiosInstance = axios.create({
+  baseURL: '/',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+axiosInstance.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = authService.getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && !error.config?.headers['X-Retry-Auth']) {
+      authService.logout();
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+const api = {
+  get: <T>(url: string, config?: AxiosRequestConfig) => makeRequest<T>({ method: 'get', url, ...config }),
+  post: <T>(url: string, data?: any, config?: AxiosRequestConfig) => makeRequest<T>({ method: 'post', url, data, ...config }),
+  put: <T>(url: string, data?: any, config?: AxiosRequestConfig) => makeRequest<T>({ method: 'put', url, data, ...config }),
+  delete: <T>(url: string, config?: AxiosRequestConfig) => makeRequest<T>({ method: 'delete', url, ...config }),
   // Health Records
   healthRecords: {
     getAll: () => 

@@ -47,8 +47,22 @@ const schema = yup.object().shape({
     ),
 });
 
+interface HealthRecord {
+  id?: string;
+  title: string;
+  description: string;
+  type: 'consultation' | 'test' | 'prescription' | 'other';
+  date: string;
+  provider: string;
+  attachments: Array<{
+    name: string;
+    type: string;
+    size: number;
+  }>;
+}
+
 interface HealthRecordFormProps {
-  initialData?: any;
+  initialData?: Partial<HealthRecord>;
   onSuccess?: () => void;
 }
 
@@ -85,7 +99,7 @@ const HealthRecordForm: React.FC<HealthRecordFormProps> = ({
   );
 
   // Handle form submission
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: HealthRecord) => {
     try {
       if (initialData?.id) {
         await updateRecord(initialData.id, data);

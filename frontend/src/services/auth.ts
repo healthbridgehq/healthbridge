@@ -1,15 +1,17 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// Using relative URLs with proxy configuration
 
 export interface LoginCredentials {
   email: string;
   password: string;
 }
 
+export type UserRole = 'user' | 'practitioner' | 'admin';
+
 export interface RegisterData extends LoginCredentials {
   full_name: string;
-  is_patient: boolean;
+  role?: UserRole;
 }
 
 export interface AuthResponse {
@@ -19,7 +21,7 @@ export interface AuthResponse {
     id: number;
     email: string;
     full_name: string;
-    is_patient: boolean;
+    role: UserRole;
   };
 }
 
@@ -39,13 +41,16 @@ class AuthService {
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/auth/login`, credentials);
+    const response = await axios.post<AuthResponse>('/auth/login', {
+      email: credentials.email,
+      password: credentials.password
+    });
     this.setToken(response.data.access_token);
     return response.data;
   }
 
   async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/auth/register`, data);
+    const response = await axios.post<AuthResponse>('/auth/register', data);
     this.setToken(response.data.access_token);
     return response.data;
   }

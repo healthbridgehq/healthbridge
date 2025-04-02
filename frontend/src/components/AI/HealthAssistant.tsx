@@ -50,9 +50,13 @@ const HealthAssistant: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  const mutation = useMutation({
-    mutationFn: async (message: string) => {
-      const response = await api.post('/ai/chat', {
+  interface ChatResponse {
+  response: string;
+}
+
+const mutation = useMutation<ChatResponse, Error, string>({
+    mutationFn: async (message: string): Promise<ChatResponse> => {
+      const response = await api.post<ChatResponse>('/ai/chat', {
         query: message,
         patientContext: {
           age: state.user?.age,
@@ -68,7 +72,7 @@ const HealthAssistant: React.FC = () => {
         ...prev,
         {
           id: Date.now().toString(),
-          content: data.response,
+          content: data?.response || 'No response received',
           sender: 'assistant',
           timestamp: new Date().toISOString(),
         },

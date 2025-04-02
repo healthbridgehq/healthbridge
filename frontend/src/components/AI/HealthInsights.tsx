@@ -37,10 +37,15 @@ interface HealthTrend {
 }
 
 const HealthInsights: React.FC = () => {
-  const { data, isLoading, error, refetch } = useQuery({
+interface InsightsResponse {
+  insights: HealthInsight[];
+  trends: HealthTrend[];
+}
+
+  const { data, isLoading, error, refetch } = useQuery<InsightsResponse, Error>({
     queryKey: ['healthInsights'],
     queryFn: async () => {
-      const response = await api.get('/ai/health-insights');
+      const response = await api.get<InsightsResponse>('/ai/health-insights');
       analytics.trackEvent({
         category: 'AI',
         action: 'Fetch Health Insights',
@@ -77,7 +82,7 @@ const HealthInsights: React.FC = () => {
     );
   }
 
-  const { insights, trends } = data;
+  const { insights, trends } = data || { insights: [], trends: [] };
 
   return (
     <Grid container spacing={3}>

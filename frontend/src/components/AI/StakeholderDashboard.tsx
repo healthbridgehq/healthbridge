@@ -45,7 +45,63 @@ import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
 import analytics from '../../utils/analytics';
-import { exportToExcel } from '../../utils/export';
+import { PieChart, Pie, Cell } from 'recharts';
+
+interface Metric {
+  label: string;
+  value: number;
+  unit?: string;
+  trend?: number;
+  status?: 'good' | 'warning' | 'error';
+}
+
+interface Recommendation {
+  title: string;
+  description: string;
+  priority: 'warning' | 'info';
+  category: string;
+}
+
+interface RiskDistribution {
+  name: string;
+  value: number;
+}
+
+interface StakeholderData {
+  clinicalInsights: {
+    metrics: Metric[];
+    trends: Array<{
+      date: string;
+      value: number;
+    }>;
+  };
+  populationHealth: {
+    riskDistribution: RiskDistribution[];
+    trends: Array<{
+      date: string;
+      value: number;
+    }>;
+    segments: Array<{
+      name: string;
+      value: number;
+    }>;
+  };
+  operationalMetrics: {
+    performance: Metric[];
+    efficiency: Array<{
+      date: string;
+      value: number;
+    }>;
+  };
+  recommendations: Recommendation[];
+}
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
+const exportToExcel = (data: any, filename: string) => {
+  // Placeholder for export functionality
+  console.log('Exporting data:', data, 'as:', filename);
+};
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -64,10 +120,10 @@ const StakeholderDashboard: React.FC = () => {
   const [timeRange, setTimeRange] = useState('month');
   const [dataScope, setDataScope] = useState('all');
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery<StakeholderData>({
     queryKey: ['stakeholderInsights', timeRange, dataScope],
     queryFn: async () => {
-      const response = await api.get('/ai/stakeholder-insights', {
+      const response = await api.get<StakeholderData>('/ai/stakeholder-insights', {
         params: { timeRange, dataScope }
       });
       analytics.trackEvent({
@@ -80,7 +136,7 @@ const StakeholderDashboard: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const handleExport = async () => {
+  const handleExport = async (): Promise<void> => {
     try {
       const exportData = await api.get('/ai/export-insights', {
         params: { timeRange, dataScope }
@@ -119,6 +175,8 @@ const StakeholderDashboard: React.FC = () => {
     );
   }
 
+  if (!data) return null;
+
   const {
     clinicalInsights,
     populationHealth,
@@ -127,7 +185,7 @@ const StakeholderDashboard: React.FC = () => {
   } = data;
 
   return (
-    <Box>
+    <Box sx={{ width: '100%', minHeight: '100vh' }}>
       {/* Dashboard Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h5" component="h1">
@@ -237,7 +295,7 @@ const StakeholderDashboard: React.FC = () => {
               {/* Key Metrics */}
               <Grid item xs={12} lg={4}>
                 <Grid container spacing={2}>
-                  {clinicalInsights.metrics.map((metric) => (
+                  {clinicalInsights.metrics.map((metric: { label: string; value: number }) => (
                     <Grid item xs={12} key={metric.label}>
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -287,7 +345,7 @@ const StakeholderDashboard: React.FC = () => {
                       AI-Generated Recommendations
                     </Typography>
                     <Grid container spacing={2}>
-                      {recommendations.map((rec, index) => (
+                      {recommendations.map((rec: { title: string; description: string }, index: number) => (
                         <Grid item xs={12} key={index}>
                           <motion.div
                             initial={{ opacity: 0, x: -20 }}
@@ -399,7 +457,7 @@ const StakeholderDashboard: React.FC = () => {
                           fill="#8884d8"
                           label
                         >
-                          {populationHealth.riskDistribution.map((entry, index) => (
+                          {populationHealth.riskDistribution.map((entry: { name: string; value: number }, index: number) => (
                             <Cell
                               key={`cell-${index}`}
                               fill={COLORS[index % COLORS.length]}
@@ -459,7 +517,7 @@ const StakeholderDashboard: React.FC = () => {
                       System Performance Metrics
                     </Typography>
                     <Grid container spacing={2}>
-                      {operationalMetrics.performance.map((metric) => (
+                      {operationalMetrics.performance.map((metric: { label: string; value: number; trend: string }) => (
                         <Grid item xs={12} sm={6} md={3} key={metric.label}>
                           <Card variant="outlined">
                             <CardContent>

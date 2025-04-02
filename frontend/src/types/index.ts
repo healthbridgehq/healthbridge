@@ -5,6 +5,9 @@ export interface User {
   avatar?: string;
   role: 'patient' | 'practitioner' | 'admin';
   preferences?: UserPreferences;
+  age?: number;
+  gender?: string;
+  conditions?: string[];
 }
 
 export interface UserPreferences {
@@ -73,6 +76,55 @@ export interface StoreState {
   consents: Consent[];
   loading: boolean;
   error: ApiError | null;
+}
+
+export interface Metric {
+  label: string;
+  value: number;
+  trend?: string;
+  unit?: string;
+  status?: 'good' | 'warning' | 'error';
+}
+
+export interface RiskDistribution {
+  name: string;
+  value: number;
+  color: string;
+}
+
+export interface ClinicalInsights {
+  metrics: Metric[];
+  trends: Array<{
+    date: string;
+    value: number;
+  }>;
+}
+
+export interface PopulationHealth {
+  riskDistribution: RiskDistribution[];
+  trends: Array<{
+    date: string;
+    value: number;
+  }>;
+  segments: Array<{
+    name: string;
+    value: number;
+  }>;
+}
+
+export interface OperationalMetrics {
+  performance: Metric[];
+  efficiency: Array<{
+    date: string;
+    value: number;
+  }>;
+}
+
+export interface AIRecommendation {
+  title: string;
+  description: string;
+  priority: 'warning' | 'info';
+  category: string;
 }
 
 export type StoreAction =

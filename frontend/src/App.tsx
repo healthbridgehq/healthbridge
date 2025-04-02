@@ -1,33 +1,40 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Container } from '@mui/material';
+import MainLayout from './components/Layout/MainLayout';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { theme } from './theme';
 
-// Components
-import Navbar from './components/Navbar';
-import Dashboard from './pages/Dashboard';
-import HealthRecords from './pages/HealthRecords';
-import ConsentManagement from './pages/ConsentManagement';
-import Profile from './pages/Profile';
+// Pages
 import Login from './pages/Login';
-import ProtectedRoute from './components/ProtectedRoute';
-import { AuthProvider } from './contexts/AuthContext';
+import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
+import HealthRecords from './pages/HealthRecords';
+import HealthAssistant from './components/AI/HealthAssistant';
+import HealthInsights from './components/AI/HealthInsights';
 
-// Create a theme instance
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#2196f3',
-    },
-    secondary: {
-      main: '#f50057',
-    },
-    background: {
-      default: '#f5f5f5',
-    },
-  },
-});
+// Protected Route Component
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Public Route Component (redirects to dashboard if already authenticated)
+const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+  
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <>{children}</>;
+};
 
 function App() {
   return (
@@ -35,44 +42,66 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Router>
-          <Navbar />
-          <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/health-records"
-                element={
-                  <ProtectedRoute>
-                    <HealthRecords />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/consent"
-                element={
-                  <ProtectedRoute>
-                    <ConsentManagement />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </Container>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            } />
+
+            {/* Protected Routes */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Navigate to="/dashboard" replace />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Dashboard />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Profile />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/health-records" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <HealthRecords />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/ai-assistant" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <HealthAssistant />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/insights" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <HealthInsights />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Catch all route */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
         </Router>
       </ThemeProvider>
     </AuthProvider>
@@ -80,3 +109,5 @@ function App() {
 }
 
 export default App;
+
+

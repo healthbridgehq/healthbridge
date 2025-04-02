@@ -42,7 +42,9 @@ class Analytics {
     // Log performance metrics
     console.log(`Performance Metric - ${entry.entryType}:`, {
       name: entry.name,
-      value: 'startTime' in entry ? entry.startTime : entry.duration,
+      value: entry.entryType === 'largest-contentful-paint' || entry.entryType === 'first-input'
+        ? (entry as PerformanceEventTiming).startTime
+        : (entry as PerformanceEventTiming).duration || 0,
       type: entry.entryType,
     });
   }
