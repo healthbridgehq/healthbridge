@@ -43,7 +43,7 @@ import {
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import api from '../../services/api';
+import { generateInsights, getInsightHistory, Insight, Metric } from '../../api/services/insightService';
 import analytics from '../../utils/analytics';
 import { PieChart, Pie, Cell } from 'recharts';
 
@@ -120,15 +120,7 @@ const StakeholderDashboard: React.FC = () => {
   const [timeRange, setTimeRange] = useState('month');
   const [dataScope, setDataScope] = useState('all');
 
-  const { data, isLoading, error, refetch } = useQuery<StakeholderData>({
-    queryKey: ['stakeholderInsights', timeRange, dataScope],
-    queryFn: async () => {
-      const response = await api.get<StakeholderData>('/ai/stakeholder-insights', {
-        params: { timeRange, dataScope }
-      });
-      analytics.trackEvent({
-        category: 'AI',
-        action: 'Fetch Stakeholder Insights',
+  const { data: insights, isLoading: insightsLoading } = useQuery(['insights'], getInsightHistory);
         label: `${timeRange}-${dataScope}`,
       });
       return response.data;

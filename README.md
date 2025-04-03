@@ -2,63 +2,159 @@
 
 HealthBridge is a secure, AI-powered healthcare data platform that prioritizes patient control and privacy while facilitating seamless data sharing between healthcare providers and patients.
 
+## Recent Updates
+
+- ✅ Implemented comprehensive security testing framework
+- 🔒 Added compliance monitoring system for HIPAA and APP
+- 🤖 Integrated AI ethics monitoring
+- 📊 Enhanced performance monitoring and optimization
+- 🎯 Created central monitoring dashboard
+
 ## Core Features
 
-- 🔒 **Privacy by Design**: End-to-end encryption, differential privacy, and robust security measures
-- 👤 **Patient-Centric**: Complete patient control over health data sharing and access
-- 🤝 **Interoperable**: FHIR-compliant APIs for seamless integration with existing healthcare systems
-- 🧠 **AI-Powered**: Secure, privacy-preserving AI insights for personalized health recommendations
-- 📱 **User-Friendly**: Intuitive interfaces for both patients and healthcare providers
+### Patient Portal
+- 📋 Health records management
+- 📅 Appointment scheduling
+- 🤖 AI-powered health assistant
+- 🔒 Secure document sharing
+
+### Clinic Portal
+- 👥 Patient management
+- 📊 Analytics dashboard
+- 📅 Appointment management
+- 💰 Billing system
+
+### Security & Monitoring
+- 🔐 AES-256 encryption
+- 🔑 OAuth 2.0 authentication
+- ✅ HIPAA & APP compliance
+- 🔍 Automated security testing
+- 📈 Performance monitoring
+
+## Project Structure
+
+```
+/frontend
+├── src/
+│   ├── pages/
+│   │   ├── patient/
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── HealthRecords.tsx
+│   │   │   ├── Appointments.tsx
+│   │   │   └── AIAssistant.tsx
+│   │   └── clinic/
+│   │       ├── Dashboard.tsx
+│   │       ├── PatientManagement.tsx
+│   │       ├── Analytics.tsx
+│   │       └── Billing.tsx
+│   └── components/
+
+/backend
+├── security/
+│   ├── testing/
+│   │   └── security_test_suite.py
+│   ├── encryption.py
+│   ├── oauth.py
+│   └── audit_service.py
+├── compliance/
+│   └── compliance_monitor.py
+├── ai/
+│   ├── ethics_monitor.py
+│   └── models/
+├── monitoring/
+│   ├── performance_monitor.py
+│   └── monitoring_dashboard.py
+└── services/
+```
 
 ## Technical Stack
 
-- **Backend**: Python FastAPI for high-performance, async API
-- **Frontend**: React with TypeScript for type-safe, modern UI
-- **Database**: PostgreSQL with encryption at rest
-- **AI/ML**: TensorFlow Privacy for privacy-preserving machine learning
-- **Security**: JWT authentication, end-to-end encryption
-- **API Standards**: FHIR (Fast Healthcare Interoperability Resources)
+### Backend
+- FastAPI for high-performance API
+- SQLAlchemy with PostgreSQL
+- OpenAI GPT-4 integration
+- scikit-learn for ML models
+- Comprehensive monitoring suite
+
+### Frontend
+- React 18+ with TypeScript
+- Material-UI components
+- React Query for data management
+- Modern, responsive design
+
+### Security
+- AES-256 encryption
+- OAuth 2.0 authentication
+- TLS 1.3 support
+- Automated security testing
+- Compliance monitoring
+
+### AI/ML
+- OpenAI GPT-4 for NLP
+- Local ML models for predictions
+- Ethics monitoring
+- Bias prevention
+- Regular validation
 
 ## Getting Started
 
 ### Prerequisites
-
 - Python 3.9+
 - Node.js 18+
 - PostgreSQL 14+
-- Docker (optional)
+- OpenAI API key
 
 ### Installation
 
-1. Clone the repository
-2. Install backend dependencies: `pip install -r requirements.txt`
-3. Install frontend dependencies: `cd frontend && npm install`
-4. Set up environment variables (see `.env.example`)
-5. Initialize the database: `python scripts/init_db.py`
+1. Clone the repository:
+```bash
+git clone https://github.com/your-org/healthbridge.git
+cd healthbridge
+```
 
-## Architecture
+2. Install backend dependencies:
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # or `venv\Scripts\activate` on Windows
+pip install -r requirements.txt
+```
 
-The platform follows a microservices architecture with these key components:
+3. Install frontend dependencies:
+```bash
+cd frontend
+npm install
+```
 
-1. **API Gateway**: Route and authenticate requests
-2. **Patient Portal**: User interface for patients
-3. **Provider Portal**: Interface for healthcare providers
-4. **Consent Management**: Handle data sharing permissions
-5. **AI Analytics**: Privacy-preserving health insights
-6. **FHIR Integration**: Healthcare system interoperability
+4. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
 
-## Security & Compliance
+5. Start the development servers:
+```bash
+# Backend
+cd backend
+uvicorn main:app --reload
 
-- HIPAA, GDPR, and CCPA compliant
-- End-to-end encryption
-- Multi-factor authentication
-- Regular security audits
-- Comprehensive audit logging
+# Frontend
+cd frontend
+npm run dev
+```
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and development process.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For support, please email support@healthbridge.com or open an issue in the repository.

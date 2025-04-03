@@ -8,7 +8,7 @@ import {
   Box,
 } from '@mui/material';
 import axios from 'axios';
-import authService from '../services/auth';
+import { authService } from '../api/services/authService';
 
 interface HealthTrends {
   risk_score: number;
