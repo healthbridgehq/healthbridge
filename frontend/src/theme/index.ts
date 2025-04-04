@@ -24,21 +24,21 @@ declare module '@mui/material/styles' {
 let theme = createTheme({
   palette: {
     primary: {
-      light: '#4dabf5',
-      main: '#1976d2',
-      dark: '#1565c0',
+      light: '#42a5f5', // Lighter shade of Deep Blue
+      main: '#1E88E5', // Deep Blue - Trust & Security
+      dark: '#1565C0', // Darker shade of Deep Blue
       contrastText: '#fff',
     },
     secondary: {
-      light: '#33ab9f',
-      main: '#009688',
-      dark: '#00695f',
+      light: '#66BB6A', // Lighter shade of Teal Green
+      main: '#43A047', // Teal Green - Health & Growth
+      dark: '#2E7D32', // Darker shade of Teal Green
       contrastText: '#fff',
     },
     medical: {
-      light: '#4fc3f7',
-      main: '#03a9f4',
-      dark: '#0288d1',
+      light: '#FDD835', // Lighter shade of Soft Yellow
+      main: '#FBC02D', // Soft Yellow - Energy & Positivity
+      dark: '#F9A825', // Darker shade of Soft Yellow
     },
     error: {
       light: '#ef5350',
@@ -61,23 +61,28 @@ let theme = createTheme({
       dark: '#1b5e20',
     },
     neutral: {
-      light: '#f5f5f5',
+      light: '#F9FAFB', // Light Gray - Clean, Modern
       main: '#9e9e9e',
-      dark: '#616161',
-      contrastText: '#fff',
+      dark: '#212121', // Dark Gray - High Contrast Text
+      contrastText: '#212121',
     },
     background: {
-      default: '#fafafa',
+      default: '#F9FAFB', // Light Gray Background
       paper: '#ffffff',
+    },
+    text: {
+      primary: '#212121', // Dark Gray - High Contrast
+      secondary: '#424242',
     },
   },
   typography: {
     fontFamily: [
       'Inter',
+      'Roboto',
+      'Source Sans Pro',
       '-apple-system',
       'BlinkMacSystemFont',
       '"Segoe UI"',
-      'Roboto',
       '"Helvetica Neue"',
       'Arial',
       'sans-serif',
@@ -136,11 +141,13 @@ let theme = createTheme({
           borderRadius: 8,
           padding: '8px 16px',
           fontWeight: 500,
+          transition: 'all 0.2s ease-in-out',
         },
         contained: {
-          boxShadow: 'none',
+          boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
           '&:hover': {
-            boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+            boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+            transform: 'translateY(-1px)',
           },
         },
       },
@@ -150,6 +157,11 @@ let theme = createTheme({
         root: {
           borderRadius: 12,
           boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.05)',
+          transition: 'all 0.3s ease-in-out',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+            boxShadow: '0px 8px 30px rgba(0, 0, 0, 0.08)',
+          },
         },
       },
     },

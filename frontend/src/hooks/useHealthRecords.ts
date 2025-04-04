@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useStore } from '../store';
-import api, { ApiError } from '../services/api';
-import { HealthRecord } from '../types';
+import { APIError } from '../api/client';
+import { healthService, HealthRecord } from '../api/services/healthService';
 
 export const useHealthRecords = () => {
   const { state, dispatch } = useStore();
@@ -12,10 +12,11 @@ export const useHealthRecords = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.healthRecords.getAll();
-      dispatch({ type: 'SET_HEALTH_RECORDS', payload: response.data });
+      const records = await healthService.getHealthRecords();
+      dispatch({ type: 'SET_HEALTH_RECORDS', payload: records });
+      return records;
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to fetch health records');
+      setError(err instanceof APIError ? err.message : 'Failed to fetch health records');
     } finally {
       setLoading(false);
     }
@@ -25,11 +26,11 @@ export const useHealthRecords = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.healthRecords.create(data);
-      dispatch({ type: 'ADD_HEALTH_RECORD', payload: response.data });
-      return response.data;
+      const newRecord = await healthService.createHealthRecord(data);
+      dispatch({ type: 'ADD_HEALTH_RECORD', payload: newRecord });
+      return newRecord;
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to create health record');
+      setError(err instanceof APIError ? err.message : 'Failed to create health record');
       throw err;
     } finally {
       setLoading(false);
@@ -40,11 +41,15 @@ export const useHealthRecords = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.healthRecords.update(id, data);
-      dispatch({ type: 'UPDATE_HEALTH_RECORD', payload: response.data });
-      return response.data;
+      const updatedRecord = await healthService.updateHealthRecord(id, data);
+      dispatch({ type: 'UPDATE_HEALTH_RECORD', payload: updatedRecord });
+      return updatedRecord;
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to update health record');
+      if (err instanceof APIError) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
       throw err;
     } finally {
       setLoading(false);
@@ -55,13 +60,10 @@ export const useHealthRecords = () => {
     setLoading(true);
     setError(null);
     try {
-      await api.healthRecords.delete(id);
-      dispatch({
-        type: 'SET_HEALTH_RECORDS',
-        payload: state.healthRecords.filter(record => record.id !== id)
-      });
+      await healthService.deleteHealthRecord(id);
+      dispatch({ type: 'DELETE_HEALTH_RECORD', payload: id });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to delete health record');
+      setError(err instanceof APIError ? err.message : 'Failed to delete health record');
       throw err;
     } finally {
       setLoading(false);
