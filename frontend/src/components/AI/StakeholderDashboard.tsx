@@ -43,11 +43,11 @@ import {
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { generateInsights, getInsightHistory, Insight, Metric } from '../../api/services/insightService';
+import { generateInsights, getInsightHistory, Insight } from '../../api/services/insightService';
 import analytics from '../../utils/analytics';
 import { PieChart, Pie, Cell } from 'recharts';
 
-interface Metric {
+interface InsightMetric {
   label: string;
   value: number;
   unit?: string;
@@ -55,21 +55,14 @@ interface Metric {
   status?: 'good' | 'warning' | 'error';
 }
 
-interface Recommendation {
-  title: string;
-  description: string;
-  priority: 'warning' | 'info';
-  category: string;
+interface InsightRequest {
+  timeRange: string;
+  dataScope: string;
 }
 
-interface RiskDistribution {
-  name: string;
-  value: number;
-}
-
-interface StakeholderData {
+interface InsightResponse {
   clinicalInsights: {
-    metrics: Metric[];
+    metrics: InsightMetric[];
     trends: Array<{
       date: string;
       value: number;
@@ -87,7 +80,48 @@ interface StakeholderData {
     }>;
   };
   operationalMetrics: {
-    performance: Metric[];
+    performance: InsightMetric[];
+    efficiency: Array<{
+      date: string;
+      value: number;
+    }>;
+  };
+  recommendations: Recommendation[];
+}
+
+interface Recommendation {
+  title: string;
+  description: string;
+  priority: 'warning' | 'info';
+  category: string;
+}
+
+interface RiskDistribution {
+  name: string;
+  value: number;
+}
+
+interface StakeholderData {
+  clinicalInsights: {
+    metrics: InsightMetric[];
+    trends: Array<{
+      date: string;
+      value: number;
+    }>;
+  };
+  populationHealth: {
+    riskDistribution: RiskDistribution[];
+    trends: Array<{
+      date: string;
+      value: number;
+    }>;
+    segments: Array<{
+      name: string;
+      value: number;
+    }>;
+  };
+  operationalMetrics: {
+    performance: InsightMetric[];
     efficiency: Array<{
       date: string;
       value: number;
@@ -120,20 +154,29 @@ const StakeholderDashboard: React.FC = () => {
   const [timeRange, setTimeRange] = useState('month');
   const [dataScope, setDataScope] = useState('all');
 
-  const { data: insights, isLoading: insightsLoading } = useQuery(['insights'], getInsightHistory);
+  const { data: insights, isLoading: insightsLoading } = useQuery({ 
+    queryKey: ['insights'],
+    queryFn: getInsightHistory
+  });
+
+  const { data, isLoading, error, refetch } = useQuery({ 
+    queryKey: ['stakeholder-data', timeRange, dataScope],
+    queryFn: async () => {
+      const response = await generateInsights({ timeRange, dataScope });
+      analytics.trackEvent({
+        category: 'AI',
+        action: 'Generate Insights',
         label: `${timeRange}-${dataScope}`,
       });
-      return response.data;
+      return response;
     },
     staleTime: 5 * 60 * 1000,
   });
 
   const handleExport = async (): Promise<void> => {
     try {
-      const exportData = await api.get('/ai/export-insights', {
-        params: { timeRange, dataScope }
-      });
-      exportToExcel(exportData.data, `healthbridge-insights-${new Date().toISOString()}`);
+      const response = await generateInsights({ timeRange, dataScope });
+      exportToExcel(response, `healthbridge-insights-${new Date().toISOString()}`);
       analytics.trackEvent({
         category: 'AI',
         action: 'Export Insights',

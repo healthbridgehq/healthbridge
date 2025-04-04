@@ -1,143 +1,148 @@
-import { useState, useEffect, useCallback, createContext, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { authService } from '../api/services/authService';
-import { UserIdentity, AuthResponse } from '../types/auth';
+import type {
+  UserIdentity,
+  AuthResponse,
+  PatientRegistration,
+  ClinicRegistration,
+  ProviderRegistration,
+  VerificationRequest,
+  VerificationResponse,
+  ResetPasswordData
+} from '../types/auth';
 
 interface AuthContextType {
-  user: UserIdentity | null;
-  isLoading: boolean;
-  error: Error | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string, mfaCode?: string) => Promise<void>;
+  user: UserIdentity | null;
+  login: (email: string, password: string, mfaCode?: string) => Promise<AuthResponse>;
   logout: () => Promise<void>;
-  registerPatient: (data: any) => Promise<void>;
-  registerClinic: (data: any) => Promise<void>;
-  registerProvider: (data: any) => Promise<void>;
+  registerPatient: (data: PatientRegistration) => Promise<AuthResponse>;
+  registerClinic: (data: ClinicRegistration) => Promise<AuthResponse>;
+  registerProvider: (data: ProviderRegistration) => Promise<AuthResponse>;
+  requestVerification: (request: VerificationRequest) => Promise<VerificationResponse>;
+  submitVerification: (request: VerificationRequest) => Promise<VerificationResponse>;
+  resetPassword: (token: string, newPassword: string) => Promise<void>;
+  isLoading: boolean;
+  isLogoutLoading: boolean;
+  isRegistrationLoading: boolean;
+  isVerificationLoading: boolean;
+  isResetLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<UserIdentity | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
   // Query for current user
-  const {
-    data: user,
-    isLoading,
-    refetch: refetchUser,
-  } = useQuery<UserIdentity | null>(
-    ['currentUser'],
-    () => authService.getCurrentUser(),
-    {
-      retry: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 30 * 60 * 1000, // 30 minutes
-    }
-  );
+  const { data: userData } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => authService.getCurrentUser(),
+    enabled: isAuthenticated,
+    retry: false,
+  });
 
   // Login mutation
   const loginMutation = useMutation<
     AuthResponse,
     Error,
     { email: string; password: string; mfaCode?: string }
-  >(
-    ({ email, password, mfaCode }) => authService.login(email, password, mfaCode),
-    {
-      onSuccess: () => {
-        refetchUser();
-        setError(null);
-      },
-      onError: (error) => {
-        setError(error);
-      },
-    }
-  );
-
-  // Logout mutation
-  const logoutMutation = useMutation(() => authService.logout(), {
-    onSuccess: () => {
-      queryClient.clear();
-      navigate('/login');
+  >({
+    mutationFn: async ({ email, password, mfaCode }) => {
+      const response = await authService.login(email, password, mfaCode || '');
+      if (response.success) {
+        setIsAuthenticated(true);
+        setUser(response.user);
+      }
+      return response;
+    },
+    onError: (error: Error) => {
+      console.error('Login failed:', error);
+      setIsAuthenticated(false);
+      setUser(null);
     },
   });
 
-  // Registration mutations
-  const patientRegistrationMutation = useMutation(
-    (data: any) => authService.registerPatient(data),
-    {
-      onSuccess: () => {
-        refetchUser();
-        navigate('/verify-email');
-      },
-      onError: (error) => {
-        setError(error);
-      },
-    }
-  );
-
-  const clinicRegistrationMutation = useMutation(
-    (data: any) => authService.registerClinic(data),
-    {
-      onSuccess: () => {
-        refetchUser();
-        navigate('/verify-business');
-      },
-      onError: (error) => {
-        setError(error);
-      },
-    }
-  );
-
-  const providerRegistrationMutation = useMutation(
-    (data: any) => authService.registerProvider(data),
-    {
-      onSuccess: () => {
-        refetchUser();
-        navigate('/verify-credentials');
-      },
-      onError: (error) => {
-        setError(error);
-      },
-    }
-  );
-
-  // Authentication methods
-  const login = useCallback(
-    async (email: string, password: string, mfaCode?: string) => {
-      await loginMutation.mutateAsync({ email, password, mfaCode });
+  // Logout mutation
+  const logoutMutation = useMutation<void, Error>({
+    mutationFn: async () => {
+      await authService.logout();
+      queryClient.clear();
+      navigate('/login');
     },
-    [loginMutation]
-  );
-
-  const logout = useCallback(async () => {
-    await logoutMutation.mutateAsync();
-  }, [logoutMutation]);
-
-  const registerPatient = useCallback(
-    async (data: any) => {
-      await patientRegistrationMutation.mutateAsync(data);
+    onError: (error: Error) => {
+      console.error('Logout failed:', error);
     },
-    [patientRegistrationMutation]
-  );
+  });
 
-  const registerClinic = useCallback(
-    async (data: any) => {
-      await clinicRegistrationMutation.mutateAsync(data);
+  // Registration mutation
+  const patientRegistrationMutation = useMutation<AuthResponse, Error, PatientRegistration>({
+    mutationFn: async (data) => {
+      const response = await authService.registerPatient(data);
+      if (response.success) {
+        setIsAuthenticated(true);
+        setUser(response.user);
+      }
+      return response;
     },
-    [clinicRegistrationMutation]
-  );
+    onError: (error: Error) => {
+      console.error('Patient registration failed:', error);
+    },
+  });
 
-  const registerProvider = useCallback(
-    async (data: any) => {
-      await providerRegistrationMutation.mutateAsync(data);
+  const clinicRegistrationMutation = useMutation<AuthResponse, Error, ClinicRegistration>({
+    mutationFn: async (data) => {
+      const response = await authService.registerClinic(data);
+      if (response.success) {
+        setIsAuthenticated(true);
+        setUser(response.user);
+      }
+      return response;
     },
-    [providerRegistrationMutation]
-  );
+    onError: (error: Error) => {
+      console.error('Clinic registration failed:', error);
+    },
+  });
+
+  const providerRegistrationMutation = useMutation<AuthResponse, Error, ProviderRegistration>({
+    mutationFn: async (data) => {
+      const response = await authService.registerProvider(data);
+      if (response.success) {
+        setIsAuthenticated(true);
+        setUser(response.user);
+      }
+      return response;
+    },
+    onError: (error: Error) => {
+      console.error('Provider registration failed:', error);
+    },
+  });
+
+  // Verify email mutation
+  const verificationMutation = useMutation<VerificationResponse, Error, VerificationRequest>({
+    mutationFn: async (request) => {
+      return await authService.submitVerification(request);
+    },
+    onError: (error: Error) => {
+      console.error('Verification failed:', error);
+    },
+  });
+
+  // Reset password mutation
+  const resetPasswordMutation = useMutation<void, Error, ResetPasswordData>({
+    mutationFn: async (data) => {
+      await authService.resetPassword(data.token, data.newPassword);
+    },
+    onError: (error: Error) => {
+      console.error('Password reset failed:', error);
+    },
+  });
 
   // Token refresh logic
   useEffect(() => {
@@ -147,9 +152,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const refreshTokens = async () => {
       try {
         await authService.refreshToken(refreshToken);
-        refetchUser();
       } catch (error) {
-        await logout();
+        await logoutMutation.mutateAsync();
       }
     };
 
@@ -158,30 +162,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const refreshInterval = setInterval(refreshTokens, tokenExpiryTime);
 
     return () => clearInterval(refreshInterval);
-  }, [logout, refetchUser]);
+  }, [logoutMutation]);
 
-  const value = {
-    user,
-    isLoading:
-      isLoading ||
-      loginMutation.isLoading ||
-      logoutMutation.isLoading ||
-      patientRegistrationMutation.isLoading ||
-      clinicRegistrationMutation.isLoading ||
-      providerRegistrationMutation.isLoading,
-    error,
-    isAuthenticated: !!user,
-    login,
-    logout,
-    registerPatient,
-    registerClinic,
-    registerProvider,
+  const value: AuthContextType = {
+    isAuthenticated,
+    user: userData || user,
+    login: (email, password, mfaCode) =>
+      loginMutation.mutateAsync({ email, password, mfaCode }),
+    logout: logoutMutation.mutateAsync,
+    registerPatient: patientRegistrationMutation.mutateAsync,
+    registerClinic: clinicRegistrationMutation.mutateAsync,
+    registerProvider: providerRegistrationMutation.mutateAsync,
+    requestVerification: authService.requestVerification.bind(authService),
+    submitVerification: verificationMutation.mutateAsync,
+    resetPassword: (token, newPassword) =>
+      resetPasswordMutation.mutateAsync({ token, newPassword, email: '' }),
+    isLoading: loginMutation.isPending,
+    isLogoutLoading: logoutMutation.isPending,
+    isRegistrationLoading:
+      patientRegistrationMutation.isPending ||
+      clinicRegistrationMutation.isPending ||
+      providerRegistrationMutation.isPending,
+    isVerificationLoading: verificationMutation.isPending,
+    isResetLoading: resetPasswordMutation.isPending,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');

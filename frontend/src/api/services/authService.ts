@@ -8,6 +8,8 @@ import {
   VerificationRequest,
   VerificationResponse,
 } from '../../types/auth';
+import { securityService } from '../../services/security';
+import { ComplianceCheck } from '../../types/security';
 
 class AuthService {
   private client: APIClient;
@@ -21,10 +23,29 @@ class AuthService {
 
   // Patient Registration Flow
   async registerPatient(data: PatientRegistration): Promise<AuthResponse> {
+    // Verify Medicare details first
+    const medicareValid = await this.client.post<{ valid: boolean }>(
+      '/auth/verify/medicare',
+      {
+        number: data.medicare.number,
+        referenceNumber: data.medicare.referenceNumber,
+        expiryDate: data.medicare.expiryDate
+      }
+    );
+
+    if (!medicareValid.valid) {
+      throw new Error('Invalid Medicare details');
+    }
+
+    // Register the patient
     const response = await this.client.post<AuthResponse>(
       '/auth/register/patient',
       data
     );
+
+    // Initialize security context
+    await securityService.initializeSecurityContext(response.user);
+    
     this.handleAuthResponse(response);
     return response;
   }
@@ -41,10 +62,40 @@ class AuthService {
 
   // Healthcare Provider Registration Flow
   async registerProvider(data: ProviderRegistration): Promise<AuthResponse> {
+    // Verify AHPRA registration
+    const ahpraValid = await this.client.post<{ valid: boolean }>(
+      '/auth/verify/ahpra',
+      {
+        number: data.ahpraNumber,
+        subspecialties: data.subspecialties
+      }
+    );
+
+    if (!ahpraValid.valid) {
+      throw new Error('Invalid AHPRA registration');
+    }
+
+    // Verify Medicare provider number
+    const providerValid = await this.client.post<{ valid: boolean }>(
+      '/auth/verify/provider',
+      {
+        number: data.providerNumber
+      }
+    );
+
+    if (!providerValid.valid) {
+      throw new Error('Invalid Medicare provider number');
+    }
+
+    // Register the provider
     const response = await this.client.post<AuthResponse>(
       '/auth/register/provider',
       data
     );
+
+    // Initialize security context
+    await securityService.initializeSecurityContext(response.user);
+
     this.handleAuthResponse(response);
     return response;
   }
@@ -79,6 +130,23 @@ class AuthService {
       password,
       mfaCode,
     });
+
+    // Initialize security context
+    await securityService.initializeSecurityContext(response.user);
+
+    // Verify data sovereignty
+    const isAustralianData = await securityService.verifyDataLocation();
+    if (!isAustralianData) {
+      throw new Error('Data sovereignty requirements not met');
+    }
+
+    // Check ADHA compliance
+    const complianceStatus = await securityService.checkADHACompliance();
+    const nonCompliant = complianceStatus.find((check: ComplianceCheck) => check.status === 'non_compliant');
+    if (nonCompliant) {
+      console.warn('ADHA compliance issue:', nonCompliant);
+    }
+
     this.handleAuthResponse(response);
     return response;
   }
@@ -152,7 +220,7 @@ class AuthService {
   }
 
   // Local Storage Management
-  private handleAuthResponse(response: AuthResponse): void {
+  private handleAuthResponse(response: AuthResponse & { accessToken: string; refreshToken: string }): void {
     this.setTokens(response.accessToken, response.refreshToken);
     this.setUser(response.user);
   }

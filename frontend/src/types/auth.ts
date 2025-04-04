@@ -24,45 +24,26 @@ export enum IdentityDocumentType {
 export interface UserIdentity {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  role: 'patient' | 'clinic';
-  phoneNumber?: string;
-  verified: {
-    email: boolean;
-    phone?: boolean;
-    identity?: boolean;
-    provider?: boolean;
-  };
+  role: 'patient' | 'provider' | 'admin' | 'clinic_staff';
+  name: string;
+  verified: boolean;
   mfaEnabled: boolean;
-  mfaMethod?: 'app' | 'sms';
-  lastLogin?: string;
   lastPasswordChange?: string;
-  preferences?: {
-    notifications: {
-      email: boolean;
-      sms: boolean;
-      push: boolean;
-    };
-    language: string;
-    timezone: string;
-  };
-  status: 'active' | 'pending' | 'suspended' | 'deactivated';
+  ihi?: string; // Individual Healthcare Identifier
+  providerNumber?: string; // Medicare Provider Number
+  ahpraNumber?: string; // AHPRA Registration Number
+  organizationId?: string;
 }
 
 export interface PatientRegistration {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   dateOfBirth: string;
-  phoneNumber: string;
-  medicareNumber: string;
-  medicareIRN: string; // Individual Reference Number
-  medicareExpiryDate: string;
-  address: {
-    street: string;
-    suburb: string;
+  medicare: {
+    number: string;
+    referenceNumber: string;
+    expiryDate: string;
     state: string;
     postcode: string;
   };
@@ -123,7 +104,7 @@ export interface ProviderRegistration {
   phoneNumber: string;
   ahpraNumber: string;
   providerNumber: string;
-  specialties: string[];
+  subspecialties?: string[];
   qualifications: {
     degree: string;
     institution: string;
@@ -144,10 +125,33 @@ export interface ProviderRegistration {
 }
 
 export interface AuthResponse {
+  success: boolean;
   user: UserIdentity;
   token: string;
   refreshToken: string;
   expiresIn: number;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+  mfaCode?: string;
+}
+
+export interface RegistrationData extends Omit<PatientRegistration | ClinicRegistration | ProviderRegistration, 'acceptedTerms' | 'privacyConsent'> {
+  acceptedTerms: boolean;
+  privacyConsent: boolean;
+}
+
+export interface ResetPasswordData {
+  email: string;
+  token?: string;
+  newPassword?: string;
+}
+
+export interface VerificationData {
+  email: string;
+  code: string;
 }
 
 export interface VerificationRequest {
