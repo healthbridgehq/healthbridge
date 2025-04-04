@@ -21,22 +21,27 @@ export class APIClient {
     return APIClient.instance;
   }
 
-  public async get<T>(url: string, config?: any): Promise<T> {
+  public async get<T = any>(url: string, config?: any): Promise<T> {
     const response = await this.client.get<T>(url, config);
     return response.data;
   }
 
-  public async post<T>(url: string, data?: any, config?: any): Promise<T> {
+  public async post<T = any>(url: string, data?: any, config?: any): Promise<T> {
     const response = await this.client.post<T>(url, data, config);
     return response.data;
   }
 
-  public async put<T>(url: string, data?: any, config?: any): Promise<T> {
+  public async put<T = any>(url: string, data?: any, config?: any): Promise<T> {
     const response = await this.client.put<T>(url, data, config);
     return response.data;
   }
 
-  public async delete<T>(url: string, config?: any): Promise<T> {
+  public async patch<T = any>(url: string, data?: any, config?: any): Promise<T> {
+    const response = await this.client.patch<T>(url, data, config);
+    return response.data;
+  }
+
+  public async delete<T = any>(url: string, config?: any): Promise<T> {
     const response = await this.client.delete<T>(url, config);
     return response.data;
   }

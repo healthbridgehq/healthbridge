@@ -1,3 +1,58 @@
+export interface PatientData {
+  profile: PatientProfile;
+  healthRecords: HealthRecord[];
+  consents: Consent[];
+  appointments: Appointment[];
+  prescriptions: Prescription[];
+}
+
+export interface HealthRecord {
+  id: string;
+  patientId: string;
+  type: 'condition' | 'procedure' | 'test' | 'vaccination' | 'note';
+  title: string;
+  description: string;
+  date: string;
+  provider: {
+    id: string;
+    name: string;
+    specialty?: string;
+  };
+  attachments?: Array<{
+    id: string;
+    name: string;
+    type: string;
+    url: string;
+  }>;
+  shared: Array<{
+    providerId: string;
+    sharedDate: string;
+  }>;
+  status: 'active' | 'completed' | 'cancelled';
+  followUp?: {
+    required: boolean;
+    date?: string;
+    notes?: string;
+  };
+}
+
+export interface Consent {
+  id: string;
+  patientId: string;
+  type: 'provider-access' | 'data-sharing' | 'research' | 'communication';
+  provider?: {
+    id: string;
+    name: string;
+    specialty?: string;
+  };
+  purpose: string;
+  granted: boolean;
+  dateGranted?: string;
+  dateRevoked?: string;
+  expiry?: string;
+  scope: Array<'profile' | 'appointments' | 'prescriptions' | 'health-records' | 'billing'>;
+}
+
 export interface PatientProfile {
   id: string;
   firstName: string;
