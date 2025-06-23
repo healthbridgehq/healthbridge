@@ -19,41 +19,29 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
-import api from '../../services/api';
+import { getInsightHistory, Insight, InsightResponse } from '../../api/services/insightService';
 import analytics from '../../utils/analytics';
-
-interface HealthInsight {
-  category: string;
-  description: string;
-  severity: 'info' | 'warning' | 'alert';
-  timestamp: string;
-}
 
 interface HealthTrend {
   metric: string;
   value: number;
-  change: number;
   trend: 'increasing' | 'decreasing' | 'stable';
 }
 
-const HealthInsights: React.FC = () => {
 interface InsightsResponse {
-  insights: HealthInsight[];
+  insights: Insight[];
   trends: HealthTrend[];
 }
 
-  const { data, isLoading, error, refetch } = useQuery<InsightsResponse, Error>({
-    queryKey: ['healthInsights'],
-    queryFn: async () => {
-      const response = await api.get<InsightsResponse>('/ai/health-insights');
-      analytics.trackEvent({
-        category: 'AI',
-        action: 'Fetch Health Insights',
-      });
-      return response.data;
-    },
+const HealthInsights: React.FC = () => {
+  const { data: insightResponses, isLoading, error, refetch } = useQuery<InsightResponse[]>({
+    queryKey: ['insights'],
+    queryFn: getInsightHistory,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
   });
+
+  const insights = insightResponses?.[0]?.insights || [];
+  const trends = insightResponses?.[0]?.trends || [];
 
   if (isLoading) {
     return (
@@ -81,8 +69,6 @@ interface InsightsResponse {
       </Alert>
     );
   }
-
-  const { insights, trends } = data || { insights: [], trends: [] };
 
   return (
     <Grid container spacing={3}>
@@ -123,7 +109,7 @@ interface InsightsResponse {
                           variant="body2"
                           color={trend.trend === 'stable' ? 'textSecondary' : 'primary'}
                         >
-                          {trend.change > 0 ? '+' : ''}{trend.change}% from last period
+                          {trend.trend === 'increasing' ? '+' : '-'}{trend.value}% from last period
                         </Typography>
                       </CardContent>
                     </Card>
@@ -143,7 +129,7 @@ interface InsightsResponse {
               AI-Generated Insights
             </Typography>
             <Box display="flex" flexDirection="column" gap={2}>
-              {insights.map((insight: HealthInsight, index: number) => (
+              {insights.map((insight, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, x: -20 }}
@@ -157,20 +143,18 @@ interface InsightsResponse {
                           label={insight.category}
                           size="small"
                           color={
-                            insight.severity === 'alert'
-                              ? 'error'
-                              : insight.severity === 'warning'
-                              ? 'warning'
-                              : 'info'
+                            insight.priority === 'low' ? 'info' :
+                            insight.priority === 'medium' ? 'warning' :
+                            insight.priority === 'high' ? 'error' : 'info'
                           }
                         />
-                        {insight.severity === 'alert' && (
+                        {insight.priority === 'high' && (
                           <WarningAmber color="error" fontSize="small" />
                         )}
                       </Box>
                       <Typography variant="body1">{insight.description}</Typography>
                       <Typography variant="caption" color="textSecondary">
-                        Generated: {new Date(insight.timestamp).toLocaleString()}
+                        Generated: {new Date(insight.createdAt).toLocaleDateString()}
                       </Typography>
                     </CardContent>
                   </Card>

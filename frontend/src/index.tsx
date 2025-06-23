@@ -6,7 +6,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { StoreProvider } from './store';
-import { theme } from './theme';
+import { defaultPatientTheme } from './theme/portalThemes';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
@@ -20,7 +20,7 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <HelmetProvider>
-      <ThemeProvider theme={theme}>
+      <ThemeProvider theme={defaultPatientTheme}>
         <CssBaseline /> {/* Reset CSS */}
         <LocalizationProvider dateAdapter={AdapterDateFns}>
           <StoreProvider>

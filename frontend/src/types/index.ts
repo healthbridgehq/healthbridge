@@ -29,6 +29,9 @@ export interface AccessibilityPreferences {
 }
 
 export interface HealthRecord {
+  source: string;
+  fileUrl: string;
+  sharedWith: string[];
   id: string;
   title: string;
   description: string;
@@ -39,6 +42,7 @@ export interface HealthRecord {
   status: 'active' | 'archived';
   createdAt: string;
   updatedAt: string;
+  dateAdded: string;
   patientId: string;
   practitionerId?: string;
 }
@@ -125,6 +129,109 @@ export interface AIRecommendation {
   description: string;
   priority: 'warning' | 'info';
   category: string;
+}
+
+export interface PatientProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  dateOfBirth: string;
+  gender?: 'male' | 'female' | 'other' | 'prefer-not-to-say';
+  address: {
+    street: string;
+    suburb: string;
+    state: string;
+    postcode: string;
+  };
+  medicare: {
+    number: string;
+    irn: string;
+    expiryDate: string;
+    verified: boolean;
+  };
+  emergencyContact: {
+    name: string;
+    relationship: string;
+    phoneNumber: string;
+  };
+  preferredLanguage?: string;
+  culturalBackground?: string;
+  preferredCommunication: 'email' | 'phone' | 'sms';
+  allergies: Array<{
+    substance: string;
+    severity: 'mild' | 'moderate' | 'severe';
+    reaction: string;
+  }>;
+  medicalConditions: Array<{
+    condition: string;
+    diagnosedDate: string;
+    status: 'active' | 'resolved' | 'managed';
+    notes?: string;
+  }>;
+  medications: Array<{
+    name: string;
+    dosage: string;
+    frequency: string;
+    startDate: string;
+    endDate?: string;
+    prescribedBy: string;
+  }>;
+}
+
+export interface Prescription {
+  id: string;
+  patientId: string;
+  providerId: string;
+  medication: {
+    name: string;
+    strength: string;
+    form: string;
+    directions: string;
+    quantity: number;
+    repeats: number;
+    pbs?: {
+      code: string;
+      benefit: number;
+    };
+  };
+  dateIssued: string;
+  dateExpiry: string;
+  status: 'active' | 'expired' | 'cancelled';
+  dispensing: Array<{
+    date: string;
+    pharmacy: string;
+    quantity: number;
+    remaining: number;
+  }>;
+  notes?: string;
+}
+
+export interface Appointment {
+  slot: string;
+  doctor: {
+    id: string;
+    name: string;
+    specialty: string;
+  };
+  id: string;
+  type: string;
+  date: string;
+  time: string;
+  clinic: {
+    id: string;
+    name: string;
+  };
+  reason: string;
+  status: 'scheduled' | 'completed' | 'cancelled';
+}
+
+export interface HealthMetric {
+  label: string;
+  value: number;
+  unit: string;
+  trend?: number;
 }
 
 export type StoreAction =

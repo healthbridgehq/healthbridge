@@ -22,7 +22,7 @@ import {
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../../services/api';
+import { APIClient } from '../../api/client';
 import analytics from '../../utils/analytics';
 import { useStore } from '../../store';
 
@@ -51,21 +51,20 @@ const HealthAssistant: React.FC = () => {
   }, [messages]);
 
   interface ChatResponse {
-  response: string;
-}
+    response: string;
+  }
 
-const mutation = useMutation<ChatResponse, Error, string>({
+  const mutation = useMutation<ChatResponse, Error, string>({
     mutationFn: async (message: string): Promise<ChatResponse> => {
-      const response = await api.post<ChatResponse>('/ai/chat', {
+      const response = await APIClient.getInstance().post<ChatResponse>('/ai/chat', {
         query: message,
         patientContext: {
           age: state.user?.age,
           gender: state.user?.gender,
           conditions: state.user?.conditions,
-          // Exclude sensitive information
         },
       });
-      return response.data;
+      return response;
     },
     onSuccess: (data) => {
       setMessages((prev) => [
