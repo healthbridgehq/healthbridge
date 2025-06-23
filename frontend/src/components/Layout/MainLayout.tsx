@@ -22,6 +22,7 @@ import {
   SmartToy as SmartToyIcon,
   Assessment as AssessmentIcon,
   Logout as LogoutIcon,
+  Help as HelpIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -38,6 +39,7 @@ const navigationItems = [
   { text: 'Health Records', icon: <DescriptionIcon />, path: '/health-records' },
   { text: 'AI Assistant', icon: <SmartToyIcon />, path: '/ai-assistant' },
   { text: 'Insights', icon: <AssessmentIcon />, path: '/insights' },
+  { text: 'Help Center', icon: <HelpIcon />, path: '/help' },
 ];
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
@@ -65,9 +67,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         position="fixed" 
         elevation={0}
         sx={{ 
-          backgroundColor: 'background.paper',
-          borderBottom: 1,
-          borderColor: 'divider',
+          backgroundColor: theme.palette.primary.main,
+          color: '#ffffff',
+          '& *': { color: '#ffffff' },
           width: `calc(100% - ${DRAWER_WIDTH}px)`,
           ml: `${DRAWER_WIDTH}px`,
         }}

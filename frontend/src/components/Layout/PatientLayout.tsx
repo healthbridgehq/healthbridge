@@ -30,6 +30,7 @@ import {
   AccountCircle,
   ExitToApp,
   Notifications,
+  Help,
 } from '@mui/icons-material';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -44,16 +45,36 @@ const Root = styled('div')({
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
+  backgroundColor: theme.palette.primary.main,
+  color: '#ffffff',
+  '& *': { color: '#ffffff' },
+  boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
 }));
 
-const StyledDrawer = styled(Drawer)({
+const StyledDrawer = styled(Drawer)(({ theme }) => ({
   width: drawerWidth,
   flexShrink: 0,
   '& .MuiDrawer-paper': {
     width: drawerWidth,
     boxSizing: 'border-box',
+    backgroundColor: theme.palette.background.paper,
+    '& .MuiListItemIcon-root': {
+      color: theme.palette.text.primary,
+    },
+    '& .MuiListItemText-root': {
+      color: theme.palette.text.primary,
+    },
+    '& .Mui-selected': {
+      backgroundColor: theme.palette.primary.light,
+      '& .MuiListItemIcon-root': {
+        color: theme.palette.primary.main,
+      },
+      '& .MuiListItemText-root': {
+        color: theme.palette.primary.main,
+      },
+    },
   },
-});
+}));
 
 const MainContent = styled('main')(({ theme }) => ({
   flexGrow: 1,
@@ -68,6 +89,7 @@ const menuItems = [
   { text: 'AI Assistant', icon: <SmartToy />, path: '/patient/ai-assistant' },
   { text: 'Health Insights', icon: <InsertChart />, path: '/patient/insights' },
   { text: 'Data Sharing', icon: <Share />, path: '/patient/data-sharing' },
+  { text: 'Help Centre', icon: <Help />, path: '/help/patient' },
 ];
 
 interface PatientLayoutProps {

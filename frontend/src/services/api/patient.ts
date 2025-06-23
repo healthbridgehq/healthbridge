@@ -5,8 +5,8 @@ import axios from 'axios';
 
 class PatientService {
   private static instance: PatientService;
-  private client: ReturnType<typeof axios.create>;
-  private readonly baseUrl: string = 'http://localhost:8000/api';
+  public client: ReturnType<typeof axios.create>;
+  public readonly baseUrl: string = 'http://localhost:8000/api';
 
   constructor() {
     this.client = axios.create({
@@ -185,10 +185,38 @@ class PatientService {
     const response = await this.client.get<Record<string, HealthMetric>>(`${this.baseUrl}/health-metrics`);
     return response.data;
   }
+
+  async getHealthRecords(filter?: string): Promise<HealthRecord[]> {
+    const queryParams = filter ? `?filter=${filter}` : '';
+    const response = await this.client.get<HealthRecord[]>(`${this.baseUrl}/health-records${queryParams}`);
+    return response.data;
+  }
+
+  async uploadHealthRecord(file: File, metadata: any): Promise<HealthRecord> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('metadata', JSON.stringify(metadata));
+    const response = await this.client.post<HealthRecord>(`${this.baseUrl}/health-records`, formData);
+    return response.data;
+  }
+
+  async deleteHealthRecord(recordId: string): Promise<void> {
+    await this.client.delete(`${this.baseUrl}/health-records/${recordId}`);
+  }
+
+  async shareHealthRecord(recordId: string, recipientId: string): Promise<void> {
+    await this.client.post(`${this.baseUrl}/health-records/${recordId}/share`, { recipientId });
+  }
+
+  async rescheduleAppointment(appointmentId: string, newDetails: { date: string; time: string }): Promise<Appointment> {
+    const response = await this.client.put<Appointment>(`${this.baseUrl}/appointments/${appointmentId}/reschedule`, newDetails);
+    return response.data;
+  }
 }
 
 export const patientService = PatientService.getInstance();
 
+// Health Records and Appointments
 export const fetchHealthRecords = (filter?: string) => patientService.getHealthRecords(filter);
 export const uploadHealthRecord = (file: File, metadata: any) => patientService.uploadHealthRecord(file, metadata);
 export const deleteHealthRecord = (recordId: string) => patientService.deleteHealthRecord(recordId);
@@ -198,7 +226,54 @@ export const fetchUpcomingAppointments = () => patientService.getUpcomingAppoint
 export const fetchHealthMetrics = () => patientService.getHealthMetrics();
 export const fetchAppointments = () => patientService.getAppointments();
 export const bookAppointment = (appointment: Omit<Appointment, 'id'>) => patientService.bookAppointment(appointment);
-export const cancelAppointment = (appointmentId: string) => patientService.cancelAppointment(appointmentId);
+export const cancelAppointment = (appointmentId: string, reason: string = 'Cancelled by patient') => patientService.cancelAppointment(appointmentId, reason);
 export const rescheduleAppointment = (appointmentId: string, newDetails: { date: string; time: string }) => patientService.rescheduleAppointment(appointmentId, newDetails);
 export const fetchAvailableSlots = (clinicId: string, date: string) => patientService.getAvailableSlots(clinicId, date);
 export const fetchClinics = () => patientService.getClinics();
+
+// AI Assistant
+export const fetchConversationHistory = async () => {
+  const response = await patientService.client.get<Array<{
+    id: string;
+    content: string;
+    sender: 'user' | 'ai';
+    timestamp: string;
+    references?: Array<{
+      title: string;
+      url: string;
+    }>;
+  }>>(`${patientService.baseUrl}/ai/conversation-history`);
+  return response.data;
+};
+
+export const sendMessage = async (message: string) => {
+  const response = await patientService.client.post<{
+    id: string;
+    content: string;
+    sender: 'ai';
+    timestamp: string;
+    references?: Array<{
+      title: string;
+      url: string;
+    }>;
+  }>(`${patientService.baseUrl}/ai/send-message`, { message });
+  return response.data;
+};
+
+export const saveConversation = async () => {
+  await patientService.client.post(`${patientService.baseUrl}/ai/save-conversation`);
+};
+
+export const fetchHealthContext = async () => {
+  const response = await patientService.client.get<{
+    conditions: string[];
+    medications: string[];
+    allergies: string[];
+    recentAppointments: Array<{
+      date: string;
+      type: string;
+      diagnosis?: string;
+    }>;
+  }>(`${patientService.baseUrl}/ai/health-context`);
+  return response.data;
+};

@@ -10,19 +10,24 @@ import {
   ConsentManager,
   PatientIdentityForm,
 } from '../components/patient';
-import {
-  ClinicDashboard,
-  ClinicAppointments,
-  ClinicBilling,
-  StaffManagement,
-  PatientManagement,
-} from '../components/clinic';
+import { HelpCentre } from '../components/help/HelpCentre';
+import ClinicDashboardContainer from '../containers/ClinicDashboardContainer';
+import ClinicAppointmentsContainer from '../containers/ClinicAppointmentsContainer';
+import ClinicBillingContainer from '../containers/ClinicBillingContainer';
+import PatientManagementContainer from '../containers/PatientManagementContainer';
+import StaffManagementContainer from '../containers/StaffManagementContainer';
 
 const AppRoutes: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return (
+      <Routes>
+        {/* Public Help Center Route */}
+        <Route path="/help/*" element={<HelpCentre type="public" />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
   }
 
   return (
@@ -36,22 +41,25 @@ const AppRoutes: React.FC = () => {
           <Route path="/patient/health-summary" element={<HealthSummary />} />
           <Route path="/patient/health-timeline" element={<HealthTimeline />} />
           <Route path="/patient/consents" element={<ConsentManager />} />
-          <Route path="/patient/identity" element={<PatientIdentityForm />} />
+          <Route path="/patient/identity" element={<PatientIdentityForm onSubmit={() => {}} onCancel={() => {}} />} />
           <Route path="/" element={<Navigate to="/patient" replace />} />
         </>
       )}
 
       {/* Clinic Portal Routes */}
-      {user?.role === 'clinic' && (
+      {user?.role === 'clinic_staff' && (
         <>
-          <Route path="/clinic" element={<ClinicDashboard />} />
-          <Route path="/clinic/appointments" element={<ClinicAppointments />} />
-          <Route path="/clinic/billing" element={<ClinicBilling />} />
-          <Route path="/clinic/staff" element={<StaffManagement />} />
-          <Route path="/clinic/patients" element={<PatientManagement />} />
+          <Route path="/clinic" element={<ClinicDashboardContainer />} />
+          <Route path="/clinic/appointments" element={<ClinicAppointmentsContainer />} />
+          <Route path="/clinic/billing" element={<ClinicBillingContainer />} />
+          <Route path="/clinic/staff" element={<StaffManagementContainer />} />
+          <Route path="/clinic/patients" element={<PatientManagementContainer />} />
           <Route path="/" element={<Navigate to="/clinic" replace />} />
         </>
       )}
+
+      {/* Help Center Route - accessible to authenticated users with role-specific content */}
+      <Route path="/help/*" element={<HelpCentre type={user?.role === 'clinic_staff' ? 'clinic' : 'patient'} />} />
 
       {/* Fallback route */}
       <Route path="*" element={<Navigate to="/" replace />} />

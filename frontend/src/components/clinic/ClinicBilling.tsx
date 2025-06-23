@@ -25,7 +25,9 @@ import {
 } from '@mui/icons-material';
 import BillingManager from '../shared/BillingManager';
 import { useClinicStaff } from '../../hooks/useClinicStaff';
+import { useBilling } from '../../hooks/useBilling';
 import { colors } from '../../theme/colors';
+import { Staff, Patient, Invoice } from '../../types/clinic';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -43,7 +45,7 @@ const ClinicBilling: React.FC = () => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
   const [tabValue, setTabValue] = React.useState(0);
-  const { staffData } = useClinicStaff();
+  const { data: staffData } = useClinicStaff();
   const [createInvoiceOpen, setCreateInvoiceOpen] = React.useState(false);
   const [selectedPatient, setSelectedPatient] = React.useState('');
   const [selectedService, setSelectedService] = React.useState('');
@@ -54,29 +56,46 @@ const ClinicBilling: React.FC = () => {
     setTabValue(newValue);
   };
 
-  const handleCreateInvoice = () => {
-    // Add invoice creation logic here
-    setCreateInvoiceOpen(false);
-    // Reset form
-    setSelectedPatient('');
-    setSelectedService('');
-    setAmount('');
-    setDescription('');
+  const { createInvoice, isCreatingInvoice } = useBilling();
+
+  const handleCreateInvoice = async () => {
+    try {
+      const service = services.find(s => s.id === selectedService);
+      if (!selectedPatient || !service) return;
+
+      await createInvoice({
+        patientId: selectedPatient,
+        serviceId: service.id,
+        amount: parseFloat(amount),
+        description: description || service.name,
+        status: 'pending',
+        date: new Date().toISOString()
+      });
+
+      setCreateInvoiceOpen(false);
+      // Reset form
+      setSelectedPatient('');
+      setSelectedService('');
+      setAmount('');
+      setDescription('');
+    } catch (error) {
+      console.error('Failed to create invoice:', error);
+    }
   };
 
   // Calculate billing statistics
   const totalRevenue = staffData?.billing?.reduce(
-    (sum, invoice) => (invoice.status === 'paid' ? sum + invoice.amount : sum),
+    (sum: number, invoice: Invoice) => (invoice.status === 'paid' ? sum + invoice.amount : sum),
     0
   ) || 0;
 
   const outstandingPayments = staffData?.billing?.reduce(
-    (sum, invoice) => (invoice.status === 'pending' ? sum + invoice.amount : sum),
+    (sum: number, invoice: Invoice) => (invoice.status === 'pending' ? sum + invoice.amount : sum),
     0
   ) || 0;
 
   const medicarePayments = staffData?.billing?.reduce(
-    (sum, invoice) =>
+    (sum: number, invoice: Invoice) =>
       invoice.paymentMethod === 'medicare' && invoice.status === 'paid'
         ? sum + invoice.amount
         : sum,
@@ -234,7 +253,7 @@ const ClinicBilling: React.FC = () => {
                 value={selectedPatient}
                 onChange={(e) => setSelectedPatient(e.target.value)}
               >
-                {staffData?.patients?.map((patient) => (
+                {staffData?.patients?.map((patient: Patient) => (
                   <MenuItem key={patient.id} value={patient.id}>
                     {patient.name}
                   </MenuItem>

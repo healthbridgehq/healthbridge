@@ -28,6 +28,7 @@ import {
   Extension,
   AccountCircle,
   ExitToApp,
+  Help,
 } from '@mui/icons-material';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -40,16 +41,36 @@ const Root = styled('div')({
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
+  backgroundColor: theme.palette.primary.main,
+  color: '#ffffff',
+  '& *': { color: '#ffffff' },
+  boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
 }));
 
-const StyledDrawer = styled(Drawer)({
+const StyledDrawer = styled(Drawer)(({ theme }) => ({
   width: drawerWidth,
   flexShrink: 0,
   '& .MuiDrawer-paper': {
     width: drawerWidth,
     boxSizing: 'border-box',
+    backgroundColor: theme.palette.background.paper,
+    '& .MuiListItemIcon-root': {
+      color: theme.palette.text.primary,
+    },
+    '& .MuiListItemText-root': {
+      color: theme.palette.text.primary,
+    },
+    '& .Mui-selected': {
+      backgroundColor: theme.palette.primary.light,
+      '& .MuiListItemIcon-root': {
+        color: theme.palette.primary.main,
+      },
+      '& .MuiListItemText-root': {
+        color: theme.palette.primary.main,
+      },
+    },
   },
-});
+}));
 
 const MainContent = styled('main')(({ theme }) => ({
   flexGrow: 1,
@@ -65,6 +86,7 @@ const menuItems = [
   { text: 'Billing', icon: <Receipt />, path: '/clinic/billing' },
   { text: 'Settings', icon: <Settings />, path: '/clinic/settings' },
   { text: 'Integration', icon: <Extension />, path: '/clinic/integration' },
+  { text: 'Help Centre', icon: <Help />, path: '/help/clinic' },
 ];
 
 interface ClinicLayoutProps {

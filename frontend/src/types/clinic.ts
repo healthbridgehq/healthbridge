@@ -27,6 +27,19 @@ export interface Patient {
   upcomingAppointment?: string;
   medicalConditions: string[];
   assignedDoctor: string;
+  name: string; // Full name for display purposes
+}
+
+export interface Invoice {
+  id: string;
+  number: string;
+  patientId: string;
+  serviceId: string;
+  amount: number;
+  date: string;
+  description: string;
+  status: 'pending' | 'paid' | 'overdue';
+  paymentMethod?: 'credit' | 'debit' | 'medicare';
 }
 
 export interface ClinicProfile {

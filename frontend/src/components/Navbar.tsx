@@ -24,11 +24,13 @@ import {
   Brightness7 as LightModeIcon,
   AccessibilityNew as AccessibilityIcon,
   Contrast as ContrastIcon,
+  Help as HelpIcon,
 } from '@mui/icons-material';
 import { useTheme as useCustomTheme } from '../theme/ThemeProvider';
 import { colors } from '../theme/colors';
 
 const Navbar = () => {
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 768);
   const theme = useTheme();
   const { darkMode, toggleDarkMode, highContrast, toggleHighContrast } = useCustomTheme();
   const [accessibilityMenu, setAccessibilityMenu] = React.useState<null | HTMLElement>(null);
@@ -41,15 +43,35 @@ const Navbar = () => {
     setAccessibilityMenu(null);
   };
 
+    React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <AppBar
       position="sticky"
+      role="navigation"
+      aria-label="Main navigation"
       sx={{
         backgroundColor: darkMode ? colors.primary.dark : colors.primary.main,
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
+        backdropFilter: 'none',
+        WebkitBackdropFilter: 'none',
+        zIndex: theme.zIndex.drawer + 1,
+        '& *': {
+          color: '#ffffff',
+        },
       }}
     >
-      <Toolbar sx={{ minHeight: '64px' }}>
+      <Toolbar 
+        sx={{
+          minHeight: '64px',
+          transition: 'all 0.3s ease',
+          p: isMobile ? 1 : 2
+        }}
+      >
         <Typography
           variant="h6"
           component={RouterLink}
@@ -76,13 +98,26 @@ const Navbar = () => {
           /> 
           HealthBridge
         </Typography>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <Box 
+          sx={{
+            display: 'flex',
+            gap: isMobile ? 1 : 2,
+            alignItems: 'center',
+            '& .MuiButton-root': {
+              transition: 'transform 0.2s ease',
+              '&:hover': {
+                transform: 'translateY(-2px)'
+              }
+            }
+          }}
+        >
           <Tooltip title="Dashboard" arrow>
             <Button
               color="inherit"
               component={RouterLink}
               to="/"
               startIcon={<DashboardIcon />}
+              aria-label="Go to dashboard"
               sx={{
                 color: colors.primary.contrastText,
                 '&:hover': {
@@ -102,6 +137,7 @@ const Navbar = () => {
               component={RouterLink}
               to="/health-records"
               startIcon={<HealthIcon />}
+              aria-label="View health records"
               sx={{
                 color: colors.primary.contrastText,
                 '&:hover': {
@@ -121,6 +157,7 @@ const Navbar = () => {
               component={RouterLink}
               to="/consent"
               startIcon={<SecurityIcon />}
+              aria-label="Manage consent settings"
               sx={{
                 color: colors.primary.contrastText,
                 '&:hover': {
@@ -200,6 +237,26 @@ const Navbar = () => {
             </MenuItem>
           </Menu>
 
+          <Tooltip title="Help Center" arrow>
+            <Button
+              color="inherit"
+              component={RouterLink}
+              to="/help"
+              startIcon={<HelpIcon />}
+              aria-label="Go to help center"
+              sx={{
+                color: '#ffffff',
+                '&:hover': {
+                  backgroundColor: theme.palette.mode === 'dark' ? 
+                    colors.action.darkHover : 
+                    colors.action.hover,
+                },
+              }}
+            >
+              Help Centre
+            </Button>
+          </Tooltip>
+
           <Tooltip title="Profile" arrow>
             <IconButton
               color="inherit"
@@ -207,7 +264,7 @@ const Navbar = () => {
               to="/profile"
               size="large"
               sx={{
-                color: colors.primary.contrastText,
+                color: '#ffffff',
                 '&:hover': {
                   backgroundColor: theme.palette.mode === 'dark' ? 
                     colors.action.darkHover : 

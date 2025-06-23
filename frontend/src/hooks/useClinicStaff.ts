@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { StaffService } from '../services/StaffService';
-import { Staff } from '../types/clinic';
+import { StaffService } from '@/services/StaffService';
+import { Staff } from '@/types/clinic';
 
 export const useClinicStaff = () => {
   const queryClient = useQueryClient();
@@ -49,10 +49,18 @@ export const useClinicStaff = () => {
     }
   );
 
+  // Get the current clinic's data including staff and patients
+  const {
+    data: clinicData,
+    isLoading: isLoadingClinic,
+    error: clinicError,
+  } = useQuery('clinic-data', () => staffService.getClinicData());
+
   return {
     staff,
-    isLoading,
-    error,
+    isLoading: isLoading || isLoadingClinic,
+    error: error || clinicError,
+    data: clinicData, // This includes staffData with billing, patients, etc.
     addStaff: addStaffMutation.mutate,
     updateStaff: updateStaffMutation.mutate,
     deleteStaff: deleteStaffMutation.mutate,

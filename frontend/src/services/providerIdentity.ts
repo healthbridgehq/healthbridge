@@ -1,34 +1,36 @@
-import { ApiClient } from '../api/client';
+import { APIClient } from '../api/client';
 
 export class ProviderIdentityService {
-  private client: ApiClient;
+  private client: APIClient;
+  private readonly baseUrl = '/provider';
 
   constructor() {
-    this.client = new ApiClient();
+    this.client = APIClient.getInstance();
+    this.baseUrl = '/provider';
   }
 
   /**
    * Get the provider's profile
    */
   async getProfile() {
-    const response = await this.client.get('/provider/profile');
-    return response.data;
+    const response = await this.client.get<{ valid: boolean }>(`${this.baseUrl}/profile`);
+    return response;
   }
 
   /**
    * Create a new provider profile
    */
   async createProfile(data: any) {
-    const response = await this.client.post('/provider/profile', data);
-    return response.data;
+    const response = await this.client.post<any>(`${this.baseUrl}/profile`, data);
+    return response;
   }
 
   /**
    * Update an existing provider profile
    */
   async updateProfile(id: string, updates: any) {
-    const response = await this.client.put(`/provider/profile/${id}`, updates);
-    return response.data;
+    const response = await this.client.put<{ valid: boolean }>(`${this.baseUrl}/profile/${id}`, updates);
+    return response;
   }
 
   /**
@@ -36,10 +38,10 @@ export class ProviderIdentityService {
    */
   async verifyAHPRA(ahpraNumber: string) {
     const response = await this.client.post<{ valid: boolean }>(
-      '/provider/verify-ahpra',
+      `${this.baseUrl}/verify-ahpra`,
       { ahpraNumber }
     );
-    return response.data;
+    return response.valid;
   }
 
   /**
@@ -47,10 +49,10 @@ export class ProviderIdentityService {
    */
   async verifyProviderNumber(providerNumber: string) {
     const response = await this.client.post<{ valid: boolean }>(
-      '/provider/verify-provider-number',
+      `${this.baseUrl}/verify-provider-number`,
       { providerNumber }
     );
-    return response.data;
+    return response.valid;
   }
 
   /**
@@ -58,10 +60,10 @@ export class ProviderIdentityService {
    */
   async verifyQualification(data: { degree: string; institution: string }) {
     const response = await this.client.post<{ valid: boolean }>(
-      '/provider/verify-qualification',
+      `${this.baseUrl}/verify-qualification`,
       data
     );
-    return response.data;
+    return response.valid;
   }
 
   /**
@@ -69,21 +71,21 @@ export class ProviderIdentityService {
    */
   async verifyInsurance(data: { provider: string; policyNumber: string }) {
     const response = await this.client.post<{ valid: boolean }>(
-      '/provider/verify-insurance',
+      `${this.baseUrl}/verify-insurance`,
       data
     );
-    return response.data;
+    return response.valid;
   }
 
   /**
    * Update provider privacy settings
    */
   async updatePrivacySettings(id: string, settings: any) {
-    const response = await this.client.put(
-      `/provider/profile/${id}/privacy`,
+    const response = await this.client.put<any>(
+      `${this.baseUrl}/profile/${id}/privacy`,
       settings
     );
-    return response.data;
+    return response;
   }
 }
 

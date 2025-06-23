@@ -29,6 +29,7 @@ const PublicLayout: React.FC = () => {
     { text: 'Features', path: '/features' },
     { text: 'About', path: '/about' },
     { text: 'Contact', path: '/contact' },
+    { text: 'Help Centre', path: '/help' },
   ];
 
   const handleMobileMenuToggle = () => {
@@ -56,9 +57,16 @@ const PublicLayout: React.FC = () => {
       ))}
       <Button
         variant="outlined"
-        color="inherit"
         onClick={() => navigate('/patient/login')}
-        sx={{ ml: 2 }}
+        sx={{
+          color: '#ffffff',
+          borderColor: '#ffffff',
+          ml: 2,
+          '&:hover': {
+            borderColor: '#ffffff',
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+          },
+        }}
       >
         Sign In
       </Button>
@@ -66,7 +74,12 @@ const PublicLayout: React.FC = () => {
         variant="contained"
         color="secondary"
         onClick={() => navigate('/patient/register')}
-        sx={{ ml: 2 }}
+        sx={{
+          ml: 2,
+          '&:hover': {
+            backgroundColor: theme.palette.secondary.dark,
+          },
+        }}
       >
         Get Started
       </Button>
@@ -81,8 +94,19 @@ const PublicLayout: React.FC = () => {
       sx={{
         '& .MuiDrawer-paper': {
           width: 240,
-          backgroundColor: 'primary.main',
-          color: 'white',
+          backgroundColor: theme.palette.background.paper,
+          '& .MuiListItemIcon-root': {
+            color: theme.palette.text.primary,
+          },
+          '& .MuiListItemText-root': {
+            color: theme.palette.text.primary,
+          },
+          '& .MuiListItem-root:hover': {
+            backgroundColor: theme.palette.primary.light,
+            '& .MuiListItemText-root': {
+              color: theme.palette.primary.main,
+            },
+          },
         },
       }}
     >
@@ -126,9 +150,10 @@ const PublicLayout: React.FC = () => {
         color="primary"
         elevation={0}
         sx={{
-          borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
-          backgroundColor: 'transparent',
-          backdropFilter: 'blur(10px)',
+          backgroundColor: theme.palette.primary.main,
+          color: '#ffffff',
+          '& *': { color: '#ffffff' },
+          boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
         }}
       >
         <Container maxWidth="lg">

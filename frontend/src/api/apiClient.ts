@@ -1,4 +1,5 @@
-import axios, { AxiosInstance } from 'axios';
+import axios from 'axios';
+type AxiosInstance = ReturnType<typeof axios.create>;
 
 export class APIClient {
   private static instance: APIClient;
